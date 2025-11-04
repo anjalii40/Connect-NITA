@@ -239,7 +239,7 @@ const LandingPage = () => {
               and advancing their careers on Connect Campus.
             </p>
             <Link to="/register">
-              <Button size="lg" variant="secondary" className="bg-white text-primary-600 hover:bg-gray-100">
+              <Button size="lg">
                 Get Started Today
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
