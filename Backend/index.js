@@ -37,9 +37,17 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS configuration
+// CORS configuration (supports multiple origins via FRONTEND_URLS comma-separated)
+const allowedOrigins = (process.env.FRONTEND_URLS
+  ? process.env.FRONTEND_URLS.split(',').map(o => o.trim()).filter(Boolean)
+  : [process.env.FRONTEND_URL || 'http://localhost:3000']);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // allow non-browser tools
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS not allowed for this origin'));
+  },
   credentials: true
 }));
 
@@ -105,7 +113,7 @@ const server = app.listen(PORT, () => {
 const socketIo = require('socket.io');
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"]
   }
 });
