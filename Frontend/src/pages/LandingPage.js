@@ -71,14 +71,6 @@ const LandingPage = () => {
             <span className="text-xl font-bold text-gradient">Connect Campus</span>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Link to="/login">
-              <Button variant="ghost">Login</Button>
-            </Link>
-            <Link to="/register">
-              <Button>Get Started</Button>
-            </Link>
-          </div>
         </div>
       </nav>
 
@@ -108,11 +100,6 @@ const LandingPage = () => {
                 <Button size="lg" className="w-full sm:w-auto">
                   Join Connect Campus
                   <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  Sign In
                 </Button>
               </Link>
             </div>
