@@ -5,12 +5,11 @@ import './index.css';
 import App from './App';
 
 // Configure axios base URL
-// Priority: REACT_APP_API_URL env variable > development default
-// In production (Vercel), REACT_APP_API_URL must be set in Vercel environment variables
+// Priority: REACT_APP_API_URL, then REACT_APP_BACKEND_URL (fallback), then development default
+// In production (Vercel), set REACT_APP_API_URL or REACT_APP_BACKEND_URL in environment variables
 const getApiBaseURL = () => {
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+  if (process.env.REACT_APP_BACKEND_URL) return process.env.REACT_APP_BACKEND_URL;
   // Development fallback
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:5000';
@@ -22,8 +21,12 @@ const getApiBaseURL = () => {
 axios.defaults.baseURL = getApiBaseURL();
 
 // Warn in production if API URL is not set
-if (process.env.NODE_ENV === 'production' && !process.env.REACT_APP_API_URL) {
-  console.error('⚠️ REACT_APP_API_URL is not set! API calls will fail. Please set it in Vercel environment variables.');
+if (
+  process.env.NODE_ENV === 'production' &&
+  !process.env.REACT_APP_API_URL &&
+  !process.env.REACT_APP_BACKEND_URL
+) {
+  console.error('⚠️ API base URL is not set! Set REACT_APP_API_URL or REACT_APP_BACKEND_URL in Vercel environment variables.');
 }
 
 // Configure axios defaults
