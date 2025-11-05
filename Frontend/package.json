@@ -60,5 +60,5 @@
     "@tailwindcss/typography": "^0.5.10",
     "@tailwindcss/aspect-ratio": "^0.4.2"
   },
-  "proxy": "http://localhost:5001"
+  "proxy": "http://localhost:5000"
 } 

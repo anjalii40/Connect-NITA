@@ -13,7 +13,18 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000', {
+      // Use REACT_APP_SOCKET_URL if set, otherwise fallback to REACT_APP_API_URL, then default
+      const socketURL = process.env.REACT_APP_SOCKET_URL || 
+        process.env.REACT_APP_API_URL ||
+        (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '');
+      
+      // Warn if socket URL is not set in production
+      if (process.env.NODE_ENV === 'production' && !socketURL) {
+        console.error('⚠️ Socket.IO URL is not set! Real-time features will not work. Please set REACT_APP_SOCKET_URL or REACT_APP_API_URL in Vercel environment variables.');
+        return;
+      }
+      
+      const newSocket = io(socketURL, {
         auth: {
           token: localStorage.getItem('token'),
         },

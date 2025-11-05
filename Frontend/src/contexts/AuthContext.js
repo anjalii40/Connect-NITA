@@ -94,9 +94,11 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, message: res.data.message };
     } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
+      const message = error.response?.data?.message || error.response?.data?.error || 'Registration failed';
       dispatch({ type: 'LOGIN_FAIL' });
       return { success: false, message };
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -116,6 +118,8 @@ export const AuthProvider = ({ children }) => {
       toast.error(message);
       dispatch({ type: 'LOGIN_FAIL' });
       return { success: false, message };
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 

@@ -84,9 +84,51 @@ The following bugs have been fixed:
 
 ## Backend Integration
 
-The frontend is configured to connect to the backend at `http://localhost:5000` (proxy setting in package.json).
+The frontend is configured to connect to the backend API. Configuration differs for development and production (Vercel).
 
-Make sure the backend server is running before testing the frontend features.
+### Development Setup:
+- **Proxy**: Configured in `package.json` to proxy API requests to `http://localhost:5000`
+- **Axios Base URL**: Automatically uses `http://localhost:5000` in development
+- **Socket.IO**: Connects to `http://localhost:5000` in development
+
+### Production Setup (Vercel):
+
+**⚠️ IMPORTANT**: You must configure environment variables in Vercel for the frontend to connect to your backend.
+
+#### Setting Environment Variables in Vercel:
+
+1. Go to your Vercel project dashboard
+2. Navigate to **Settings** → **Environment Variables**
+3. Add the following environment variables:
+
+```
+REACT_APP_API_URL=https://your-backend-url.com
+REACT_APP_SOCKET_URL=https://your-backend-url.com
+```
+
+**Note**: Replace `https://your-backend-url.com` with your actual backend deployment URL (e.g., Render, AWS, Heroku, etc.)
+
+#### Backend CORS Configuration:
+
+Ensure your backend `config.env` or environment variables include your Vercel frontend URL:
+```env
+FRONTEND_URL=https://connect-nita-445kezorm-anjalii40s-projects.vercel.app
+FRONTEND_URLS=https://connect-nita-445kezorm-anjalii40s-projects.vercel.app, http://localhost:3000
+```
+
+### Local Development:
+
+For local development, create a `.env` file in the Frontend directory (optional):
+```env
+REACT_APP_API_URL=http://localhost:5000
+REACT_APP_SOCKET_URL=http://localhost:5000
+```
+
+### Important Notes:
+- **Development**: Make sure the backend server is running on port 5000 before testing locally
+- **Production**: Both `REACT_APP_API_URL` and `REACT_APP_SOCKET_URL` must be set in Vercel environment variables
+- The backend CORS must allow requests from your Vercel frontend URL
+- After setting environment variables in Vercel, you need to redeploy for changes to take effect
 
 ## College Data Management
 

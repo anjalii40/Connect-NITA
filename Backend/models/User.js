@@ -42,34 +42,44 @@ const userSchema = new mongoose.Schema({
   emailVerificationToken: String,
   emailVerificationExpires: Date,
   
-  // College Information
+  // College Information (required only for students and alumni)
   college: {
     name: {
       type: String,
-      required: [true, 'College name is required']
+      required: function() {
+        return this.userType !== 'admin';
+      }
     },
     tier: {
       type: String,
       enum: ['Tier 1', 'Tier 2'],
-      required: [true, 'College tier is required']
+      required: function() {
+        return this.userType !== 'admin';
+      }
     }
   },
   branch: {
     type: String,
-    required: [true, 'Branch is required']
+    required: function() {
+      return this.userType !== 'admin';
+    }
   },
   batchYear: {
     type: Number,
-    required: [true, 'Batch year is required'],
+    required: function() {
+      return this.userType !== 'admin';
+    },
     min: [1950, 'Invalid batch year'],
     max: [new Date().getFullYear() + 5, 'Invalid batch year']
   },
   
-  // Professional Information
+  // Professional Information (required only for students and alumni)
   domain: {
     type: String,
     enum: ['technology', 'banking', 'consulting', 'startups', 'government', 'design', 'research', 'other'],
-    required: [true, 'Professional domain is required']
+    required: function() {
+      return this.userType !== 'admin';
+    }
   },
   currentRole: {
     type: String,

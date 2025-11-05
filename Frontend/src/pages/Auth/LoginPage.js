@@ -21,11 +21,14 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
-      toast.success('Login successful!');
-      navigate('/dashboard');
+      const result = await login(data.email, data.password);
+      if (result?.success) {
+        navigate('/dashboard');
+      }
+      // Toast messages are handled in AuthContext
     } catch (error) {
-      toast.error(error.message || 'Login failed. Please try again.');
+      // Unexpected errors (shouldn't happen, but just in case)
+      console.error('Unexpected login error:', error);
     } finally {
       setIsLoading(false);
     }
