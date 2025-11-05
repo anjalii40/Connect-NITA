@@ -32,10 +32,10 @@ const RegisterPage = () => {
     const college = e.target.value;
     if (college === 'Other') {
       setShowOtherCollege(true);
-      setValue('college', '');
+      setValue('college', '', { shouldValidate: false });
     } else {
       setShowOtherCollege(false);
-      setValue('college', college);
+      setValue('college', college, { shouldValidate: true });
     }
   };
 
@@ -53,11 +53,37 @@ const RegisterPage = () => {
 
       // Add college information only for students and alumni
       if (data.userType !== 'admin') {
-        // Find the selected college data
-        const selectedCollege = collegeOptions.find(college => college.name === data.college);
+        // Handle college data - prioritize "Other" college input if it exists
+        let collegeName = '';
+        let collegeTier = 'Tier 2'; // Default tier
+        
+        // Check if "Other" college was selected and has a value
+        if (data.otherCollege) {
+          collegeName = data.otherCollege.trim();
+          collegeTier = 'Tier 2'; // Default tier for custom colleges
+        } else if (data.college && data.college !== 'Other') {
+          // Try to find in collegeOptions
+          const selectedCollege = collegeOptions.find(college => college.name === data.college);
+          if (selectedCollege) {
+            collegeName = selectedCollege.name;
+            collegeTier = selectedCollege.tier;
+          } else {
+            // Fallback: use the college value directly
+            collegeName = data.college;
+            collegeTier = 'Tier 2';
+          }
+        }
+        
+        // Validate that we have a college name
+        if (!collegeName) {
+          toast.error('Please select or enter a college name');
+          setIsLoading(false);
+          return;
+        }
+        
         registrationData.college = {
-          name: data.college,
-          tier: selectedCollege ? selectedCollege.tier : 'Tier 2'
+          name: collegeName,
+          tier: collegeTier
         };
         registrationData.branch = data.branch;
         registrationData.batchYear = parseInt(data.batchYear);
@@ -279,7 +305,14 @@ const RegisterPage = () => {
                       College/Institution
                     </label>
                     <select
-                      {...register('college', { required: 'College is required' })}
+                      {...register('college', { 
+                        validate: (value) => {
+                          // If "Other" is selected, this field is not required
+                          if (value === 'Other' || showOtherCollege) return true;
+                          // Otherwise, college selection is required
+                          return value !== '' || 'Please select a college';
+                        }
+                      })}
                       onChange={handleCollegeChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                     >
@@ -302,10 +335,10 @@ const RegisterPage = () => {
                       <Input
                         label="College Name"
                         type="text"
-                        {...register('college', {
-                          required: 'College name is required',
+                        {...register('otherCollege', {
+                          required: showOtherCollege ? 'College name is required' : false,
                         })}
-                        error={errors.college?.message}
+                        error={errors.otherCollege?.message}
                         placeholder="Enter your college name"
                       />
                     </div>

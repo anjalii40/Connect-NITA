@@ -47,7 +47,9 @@ const register = async (req, res) => {
       }
     } else {
       // For students and alumni, all fields are required
-      if (!firstName || !lastName || !email || !password || !college || !branch || !batchYear || !domain) {
+      // Check college as object with name property
+      const collegeName = college && typeof college === 'object' ? college.name : college;
+      if (!firstName || !lastName || !email || !password || !collegeName || !branch || !batchYear || !domain) {
         return res.status(400).json({
           success: false,
           message: 'All fields are required for student and alumni registration'
@@ -138,12 +140,29 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
+      });
+    }
+
     // Check if user exists
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid email or password'
       });
     }
 
@@ -152,7 +171,7 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials'
+        message: 'Invalid email or password'
       });
     }
 
@@ -160,7 +179,7 @@ const login = async (req, res) => {
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
-        message: 'Account is deactivated'
+        message: 'Account is deactivated. Please contact support.'
       });
     }
 
@@ -168,7 +187,7 @@ const login = async (req, res) => {
     if (user.isBlocked) {
       return res.status(403).json({
         success: false,
-        message: 'Account is blocked'
+        message: 'Account is blocked. Please contact support.'
       });
     }
 
@@ -200,8 +219,8 @@ const login = async (req, res) => {
     console.error('Login error:', error);
     res.status(500).json({
       success: false,
-      message: 'Login failed',
-      error: error.message
+      message: 'Login failed. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

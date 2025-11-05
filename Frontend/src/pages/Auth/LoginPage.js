@@ -21,7 +21,7 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      const result = await login(data.email, data.password);
+      const result = await login(data.email.trim(), data.password);
       if (result?.success) {
         navigate('/dashboard');
       }
@@ -29,6 +29,7 @@ const LoginPage = () => {
     } catch (error) {
       // Unexpected errors (shouldn't happen, but just in case)
       console.error('Unexpected login error:', error);
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

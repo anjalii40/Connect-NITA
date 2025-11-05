@@ -106,15 +106,41 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Validate inputs
+      if (!email || !password) {
+        toast.error('Please enter both email and password');
+        dispatch({ type: 'SET_LOADING', payload: false });
+        return { success: false, message: 'Email and password are required' };
+      }
+      
       const res = await axios.post('/api/auth/login', { email, password });
       
-      setAuthToken(res.data.token);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
-      
-      toast.success('Login successful!');
-      return { success: true };
+      if (res.data.success) {
+        setAuthToken(res.data.token);
+        dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+        toast.success('Login successful!');
+        return { success: true };
+      } else {
+        const message = res.data.message || 'Login failed';
+        toast.error(message);
+        dispatch({ type: 'LOGIN_FAIL' });
+        return { success: false, message };
+      }
     } catch (error) {
-      const message = error.response?.data?.message || 'Login failed';
+      let message = 'Login failed. Please try again.';
+      
+      if (error.response) {
+        // Server responded with error
+        message = error.response.data?.message || error.response.data?.error || message;
+      } else if (error.request) {
+        // Request made but no response
+        message = 'Unable to connect to server. Please check your internet connection.';
+      } else {
+        // Error in setting up request
+        message = error.message || message;
+      }
+      
       toast.error(message);
       dispatch({ type: 'LOGIN_FAIL' });
       return { success: false, message };
