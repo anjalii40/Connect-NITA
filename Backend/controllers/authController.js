@@ -27,8 +27,11 @@ const register = async (req, res) => {
       domain
     } = req.body;
 
+    // Normalize email to lowercase
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -52,7 +55,17 @@ const register = async (req, res) => {
       if (!firstName || !lastName || !email || !password || !collegeName || !branch || !batchYear || !domain) {
         return res.status(400).json({
           success: false,
-          message: 'All fields are required for student and alumni registration'
+          message: 'All fields are required for student and alumni registration',
+          missingFields: {
+            firstName: !firstName,
+            lastName: !lastName,
+            email: !email,
+            password: !password,
+            college: !collegeName,
+            branch: !branch,
+            batchYear: !batchYear,
+            domain: !domain
+          }
         });
       }
     }
@@ -65,7 +78,7 @@ const register = async (req, res) => {
     const userData = {
       firstName,
       lastName,
-      email,
+      email: normalizedEmail,
       password,
       userType,
       emailVerificationToken,
@@ -91,7 +104,7 @@ const register = async (req, res) => {
 
     // Send verification email (skip for admins)
     if (userType !== 'admin') {
-      const emailResult = await sendVerificationEmail(email, emailVerificationToken, firstName);
+      const emailResult = await sendVerificationEmail(normalizedEmail, emailVerificationToken, firstName);
       
       if (!emailResult.success) {
         console.error('Failed to send verification email:', emailResult.error);
@@ -125,10 +138,30 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors
+      });
+    }
+    
+    // Handle duplicate key error (email already exists)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'User already exists with this email'
+      });
+    }
+    
+    // Generic error
     res.status(500).json({
       success: false,
-      message: 'Registration failed',
-      error: error.message
+      message: 'Registration failed. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

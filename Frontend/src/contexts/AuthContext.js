@@ -94,7 +94,32 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, message: res.data.message };
     } catch (error) {
-      const message = error.response?.data?.message || error.response?.data?.error || 'Registration failed';
+      let message = 'Registration failed';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Handle validation errors array
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          message = errorData.errors.join(', ');
+        } 
+        // Handle missing fields
+        else if (errorData.missingFields) {
+          const missingFields = Object.keys(errorData.missingFields).filter(
+            field => errorData.missingFields[field]
+          );
+          message = `Missing required fields: ${missingFields.join(', ')}`;
+        }
+        // Handle regular error message
+        else {
+          message = errorData.message || errorData.error || message;
+        }
+      } else if (error.request) {
+        message = 'Unable to connect to server. Please check your internet connection.';
+      } else {
+        message = error.message || message;
+      }
+      
       dispatch({ type: 'LOGIN_FAIL' });
       return { success: false, message };
     } finally {
